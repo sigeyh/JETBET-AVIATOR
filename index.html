@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1b1c21">
+    <title>JetBet Aviator</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="/public/icons/icon-192.png">
+    <link rel="stylesheet" href="auth.css?v=2">
+    <link rel="stylesheet" href="style.css?v=2">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        
+        <header class="app-header">
+            <div class="logo">
+                <span class="logo-icon">🚀</span> JETBET
+            </div>
+            <div class="header-right" id="headerRight">
+                <button class="header-btn btn-login" id="loginBtn">Login</button>
+                <button class="header-btn btn-register" id="registerBtn">Register</button>
+            </div>
+        </header>
+
+        <div class="content-layout">
+            <aside class="left-sidebar">
+                <div class="sidebar-tabs">
+                    <button class="sidebar-tab active" data-target="allBets">All Bets</button>
+                    <button class="sidebar-tab" data-target="myBets">My Bets</button>
+                    <button class="sidebar-tab" data-target="topBets">Top</button>
+                </div>
+                <div class="sidebar-content" id="allBetsList">
+                    <!-- Simulated bets will be injected here -->
+                </div>
+            </aside>
+
+            <main class="aviator-main">
+            <!-- Header for game state -->
+            <div class="aviator-header">
+                <div class="balance-display">
+                    <span class="user-icon">👤</span>
+                    <span id="balance">17,055.29</span>
+                    <span class="currency">KES</span>
+                </div>
+                <div class="history-bar-container">
+                    <div class="history-label">Previous</div>
+                    <div class="history-bar" id="historyBar">
+                        <!-- History pills will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game viewing area -->
+            <div class="game-view">
+                <canvas id="gameCanvas"></canvas>
+                <div id="plane" class="plane"></div>
+                <div class="multiplier-center">
+                    <div id="flewAwayDisplay" class="hidden">FLEW AWAY!</div>
+                    <div id="multiplierDisplay">1.00x</div>
+                    <div id="waitingNextRound" class="hidden">WAITING FOR NEXT ROUND...</div>
+                    <div id="waitingProgressBar" class="hidden"><div class="progress-fill" id="progressFill"></div></div>
+                </div>
+            </div>
+
+            <!-- Controls (Dual bet panels) -->
+            <div class="controls-area">
+                <!-- Panel 1 -->
+                <div class="bet-panel" id="panel1">
+                    <div class="panel-header">
+                        <button class="mode-btn active" data-panel="1" data-mode="bet">Bet</button>
+                        <button class="mode-btn" data-panel="1" data-mode="auto">Auto</button>
+                    </div>
+                    <div class="panel-body">
+                        <div class="bet-input-row">
+                            <button class="adjust-btn minus-btn" data-panel="1">-</button>
+                            <input type="number" id="betInput1" class="bet-amount" value="10.00" step="1.00">
+                            <button class="adjust-btn plus-btn" data-panel="1">+</button>
+                        </div>
+                        <div class="quick-bets">
+                            <button class="quick-btn" data-panel="1" data-val="100">100</button>
+                            <button class="quick-btn" data-panel="1" data-val="200">200</button>
+                            <button class="quick-btn" data-panel="1" data-val="500">500</button>
+                            <button class="quick-btn" data-panel="1" data-val="10000">10,000</button>
+                        </div>
+                        
+                        <!-- Auto Settings (Hidden by default) -->
+                        <div class="auto-settings hidden" id="autoSettings1">
+                            <div class="auto-row">
+                                <span>Auto Bet</span>
+                                <label class="switch small-switch">
+                                    <input type="checkbox" id="autoBetToggle1">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <div class="auto-row">
+                                <span>Auto Cashout</span>
+                                <input type="number" id="autoCashoutInput1" class="small-input" value="1.50" step="0.10">
+                                <label class="switch small-switch">
+                                    <input type="checkbox" id="autoCashoutToggle1">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button class="action-btn bet-action-btn" id="actionBtn1">
+                            <span>BET</span>
+                            <span class="btn-subtext" id="btnSub1">10.00 KES</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Panel 2 -->
+                <div class="bet-panel" id="panel2">
+                    <div class="panel-header">
+                        <button class="mode-btn active" data-panel="2" data-mode="bet">Bet</button>
+                        <button class="mode-btn" data-panel="2" data-mode="auto">Auto</button>
+                    </div>
+                    <div class="panel-body">
+                        <div class="bet-input-row">
+                            <button class="adjust-btn minus-btn" data-panel="2">-</button>
+                            <input type="number" id="betInput2" class="bet-amount" value="10.00" step="1.00">
+                            <button class="adjust-btn plus-btn" data-panel="2">+</button>
+                        </div>
+                        <div class="quick-bets">
+                            <button class="quick-btn" data-panel="2" data-val="100">100</button>
+                            <button class="quick-btn" data-panel="2" data-val="200">200</button>
+                            <button class="quick-btn" data-panel="2" data-val="500">500</button>
+                            <button class="quick-btn" data-panel="2" data-val="10000">10,000</button>
+                        </div>
+
+                        <!-- Auto Settings -->
+                        <div class="auto-settings hidden" id="autoSettings2">
+                            <div class="auto-row">
+                                <span>Auto Bet</span>
+                                <label class="switch small-switch">
+                                    <input type="checkbox" id="autoBetToggle2">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <div class="auto-row">
+                                <span>Auto Cashout</span>
+                                <input type="number" id="autoCashoutInput2" class="small-input" value="1.50" step="0.10">
+                                <label class="switch small-switch">
+                                    <input type="checkbox" id="autoCashoutToggle2">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button class="action-btn bet-action-btn" id="actionBtn2">
+                            <span>BET</span>
+                            <span class="btn-subtext" id="btnSub2">10.00 KES</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-actions">
+              <div class="mode-toggle">
+  <span id="demoText" style="color:#1dbb4d">Demo Play</span>
+  <label class="switch">
+    <input type="checkbox" id="realPlayToggle">
+    <span class="slider round"></span>
+  </label>
+  <span id="realText">Real Play</span>
+  <button id="darkModeToggle" class="btn-primary" style="margin-left:0.5rem;">Dark Mode</button>
+</div>            </div>
+            
+            </main>
+        </div>
+    </div>
+
+    <!-- ========== AUTH MODAL ========== -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-box">
+            <button class="modal-close" id="closeAuthModal">&#10005;</button>
+
+            <!-- Tab switcher -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tabLogin" data-tab="login">Login</button>
+                <button class="auth-tab" id="tabRegister" data-tab="register">Register</button>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <div class="auth-form" id="loginForm">
+                <div class="modal-logo">🚀 <span>JETBET</span></div>
+                <p class="modal-subtitle">Welcome back! Login to continue betting.</p>
+                <div class="form-group">
+                    <label for="loginPhone">Phone / Email</label>
+                    <input type="text" id="loginPhone" placeholder="0712345678 or email" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <div class="input-icon-wrap">
+                        <input type="password" id="loginPassword" placeholder="Enter password" autocomplete="current-password">
+                        <button class="show-pw" data-target="loginPassword">👁</button>
+                    </div>
+                </div>
+                <div class="form-error hidden" id="loginError"></div>
+                <button class="submit-btn" id="loginSubmit">Login</button>
+                <p class="form-footer">Don't have an account? <a href="#" id="switchToRegister">Register</a></p>
+            </div>
+
+            <!-- REGISTER FORM -->
+            <div class="auth-form hidden" id="registerForm">
+                <div class="modal-logo">🚀 <span>JETBET</span></div>
+                <p class="modal-subtitle">Create your account to start winning!</p>
+                <div class="form-group">
+                    <label for="regName">Full Name</label>
+                    <input type="text" id="regName" placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="regPhone">Phone Number</label>
+                    <div class="phone-flag">
+                        <span class="flag">🇰🇪 +254</span>
+                    <input type="tel" id="regPhone" placeholder="712 345 678" inputmode="tel" autocomplete="tel" >
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Password</label>
+                    <div class="input-icon-wrap">
+                        <input type="password" id="regPassword" placeholder="Min 6 characters" autocomplete="new-password">
+                        <button class="show-pw" data-target="regPassword">👁</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="regConfirm">Confirm Password</label>
+                    <div class="input-icon-wrap">
+                        <input type="password" id="regConfirm" placeholder="Re-enter password" autocomplete="new-password">
+                        <button class="show-pw" data-target="regConfirm">👁</button>
+                    </div>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="regTerms">
+                    <label for="regTerms">I agree to the <a href="#">Terms & Conditions</a></label>
+                </div>
+                <div class="form-error hidden" id="regError"></div>
+                <button class="submit-btn" id="registerSubmit">Create Account</button>
+                <p class="form-footer">Already have an account? <a href="#" id="switchToLogin">Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== DEPOSIT MODAL ========== -->
+    <div class="modal-overlay" id="depositModal">
+        <div class="modal-box deposit-box">
+            <button class="modal-close" id="closeDepositModal">&#10005;</button>
+            <div class="modal-logo">💳 <span>Deposit Funds</span></div>
+            <p class="modal-subtitle">Instantly top up via M-Pesa</p>
+
+            <!-- Amount selection -->
+            <div class="deposit-quick-amounts" id="depositQuickAmounts">
+                <button class="d-amt-btn" data-amount="100">KES 100</button>
+                <button class="d-amt-btn" data-amount="200">KES 200</button>
+                <button class="d-amt-btn" data-amount="500">KES 500</button>
+                <button class="d-amt-btn" data-amount="1000">KES 1,000</button>
+                <button class="d-amt-btn" data-amount="2000">KES 2,000</button>
+                <button class="d-amt-btn" data-amount="5000">KES 5,000</button>
+            </div>
+
+            <div class="form-group">
+                <label for="depositAmount">Enter Amount (KES)</label>
+                <input type="number" id="depositAmount" placeholder="Min. KES 50" min="50" step="10">
+            </div>
+
+            <div class="form-group">
+                <label for="depositPhone">M-Pesa Phone Number</label>
+                <div class="phone-flag">
+                    <span class="flag">🇰🇪 +254</span>
+                    <input type="tel" id="depositPhone" placeholder="712 345 678" inputmode="tel" autocomplete="tel" >
+                </div>
+            </div>
+
+            <div class="mpesa-logo">
+                <span>Powered by</span>
+                <strong style="color:#4caf50;">M-PESA</strong>
+            </div>
+
+            <div class="form-error hidden" id="depositError"></div>
+
+            <!-- Pending STK push state -->
+            <div class="stk-pending hidden" id="stkPending">
+                <div class="stk-spinner"></div>
+                <p>STK Push sent to your phone.<br>Enter your M-Pesa PIN to complete.</p>
+                <button class="submit-btn success" id="stkConfirm">Confirm Payment</button>
+                <button class="cancel-link" id="stkCancel">Cancel</button>
+            </div>
+
+            <button class="submit-btn" id="depositSubmit">Deposit via M-Pesa</button>
+
+            <!-- Success state -->
+            <div class="deposit-success hidden" id="depositSuccess">
+                <div class="success-icon">✅</div>
+                <h3>Payment Successful!</h3>
+                <p id="successMsg"></p>
+                <button class="submit-btn" id="depositDone">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=2"></script>
+    <script src="auth.js?v=2"></script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+</body>
+</html>

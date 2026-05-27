@@ -1,0 +1,298 @@
+/* Aviator game styles (responsive/mobile-first) */
+
+:root {
+  --aviator-bg: #14161d;
+  --aviator-panel-bg: rgba(30, 32, 38, 0.85);
+  --aviator-text: #e0e0e0;
+  --aviator-border: rgba(255, 255, 255, 0.12);
+  --aviator-accent-red: #ff3b30;
+  --aviator-accent-green: #30d158;
+}
+
+.app-container {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #0d0e12 0%, #14161d 45%, #1a1c21 100%);
+}
+
+.aviator-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  /* Prevent horizontal scroll on small phones */
+  width: 100%;
+  max-width: 100%;
+}
+
+
+.aviator-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(25, 27, 33, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+}
+
+.balance-display {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.currency {
+  color: var(--aviator-accent-green);
+  font-weight: 900;
+}
+
+.history-bar {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.history-bar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.history-bar .pill {
+  width: 10px;
+  height: 22px;
+  border-radius: 6px;
+  flex: 0 0 auto;
+}
+
+.game-view {
+  position: relative;
+  flex: 1;
+  min-height: 320px;
+  background: var(--aviator-bg);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+canvas#gameCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* avoid overflow issues in some mobile browsers */
+  max-width: 100%;
+}
+
+
+.multiplier-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--aviator-accent-green);
+  font-size: clamp(26px, 5.2vw, 44px);
+  font-weight: 1000;
+  letter-spacing: 0.2px;
+  pointer-events: none;
+  padding: 0 10px;
+}
+
+#flewAwayDisplay {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--aviator-accent-red);
+  font-size: clamp(16px, 3.8vw, 22px);
+  font-weight: 900;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.controls-area {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bet-panel {
+  background: var(--aviator-panel-bg);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.bet-input-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.bet-input-row label {
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.bet-amount {
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+/* Mobile convenience rows */
+.quick-bets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 6px 0 0;
+}
+
+.quick-btn {
+  flex: 1 1 auto;
+  min-width: 70px;
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.quick-btn:active {
+  transform: translateY(1px);
+}
+
+.bet-amount-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+
+.bet-amount:focus {
+  outline: 2px solid rgba(48, 209, 88, 0.35);
+  outline-offset: 2px;
+}
+
+.auto-settings {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auto-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.auto-row label {
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.auto-row input[type='number'] {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  max-width: 110px;
+}
+
+.action-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px 12px;
+  border-radius: 14px;
+  border: 0;
+  cursor: pointer;
+  background: var(--aviator-accent-green);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 1000;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.action-btn:active {
+  transform: translateY(1px);
+}
+
+.plane {
+  position: absolute;
+  bottom: 0%;
+  left: 10%;
+  width: 86px;
+  height: 44px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 50'%3E%3Cpath fill='%23e6003c' d='M10,35 Q 30,30 80,15 L 95,20 C 100,22 100,28 95,30 L 80,35 Q 30,40 10,35 Z'/%3E%3Cpath fill='%23ff1a53' d='M40,25 L50,5 L60,20 Z'/%3E%3Cpath fill='%23b3002f' d='M40,25 L50,45 L60,30 Z'/%3E%3Cpath fill='%23ff1a53' d='M10,35 L5,15 L20,32 Z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  z-index: 3;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (min-width: 768px) {
+  .aviator-main {
+    padding: 18px 20px;
+    gap: 14px;
+  }
+
+  .controls-area {
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .bet-panel {
+    max-width: 360px;
+  }
+
+  .game-view {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 360px) {
+  .aviator-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .balance-display {
+    font-size: 13px;
+  }
+}
+
