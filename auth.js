@@ -257,8 +257,8 @@
 
     setError(errEl, '');
 
-    if (!amount || amount < 50) return setError(errEl, 'Minimum deposit is KES 50.');
-    if (!phone || phone.length < 9) return setError(errEl, 'Enter a valid M-Pesa number.');
+    if (!Number.isFinite(amount) || amount < 50) return setError(errEl, 'Minimum deposit is KES 50.');
+    if (!phone || typeof phone !== 'string' || phone.length < 9) return setError(errEl, 'Enter a valid M-Pesa number.');
 
     const session = getSession();
     const jwt = localStorage.getItem('jetbet_jwt');
