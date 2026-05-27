@@ -264,7 +264,9 @@
     const jwt = localStorage.getItem('jetbet_jwt');
 
     if (!session || !jwt) {
-      return setError(errEl, 'Login required to deposit.');
+      // Avoid blocking UX with a deposit-specific login message; prompt via auth modal UI
+      // (still requires JWT for the real PayHero call)
+      return setError(errEl, 'Please login to continue.');
     }
 
 
