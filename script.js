@@ -101,31 +101,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Canvas and path drawing
   let ctx = null;
+  const resize = () => {
+    if (!canvas) return;
+    canvas.width = canvas.parentElement.clientWidth || 800;
+    canvas.height = canvas.parentElement.clientHeight || 500;
+  };
   if (canvas) {
     ctx = canvas.getContext('2d');
-    const resize = () => {
-      canvas.width = canvas.parentElement.clientWidth;
-      canvas.height = canvas.parentElement.clientHeight;
-    };
     resize();
     window.addEventListener('resize', resize);
   }
 
   let pathPoints = [];
   let lastPlaneX = 0, lastPlaneY = 0;
-
-  // === STARFIELD ===
-  const stars = Array.from({ length: 140 }, () => ({
-    x: Math.random(), y: Math.random(),
-    size: Math.random() * 1.6 + 0.3,
-    opacity: Math.random() * 0.75 + 0.25,
-    twinklePhase: Math.random() * Math.PI * 2,
-    twinkleSpeed: Math.random() * 2.5 + 0.5
-  }));
-
-  // === PARTICLE SYSTEMS ===
-  const exhaustParticles = [];
   const crashParticles = [];
+  const exhaustParticles = []; // Kept for extension if needed
 
   const hexToRgb = hex => {
     const r = parseInt(hex.slice(1,3),16);
@@ -134,35 +124,57 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${r},${g},${b}`;
   };
 
-  const spawnExhaust = (px, py) => {
-    const colors = ['#ff6600','#ff9500','#ffcc00','#ff4400','#ffdd44'];
-    for (let i = 0; i < 4; i++) {
-      exhaustParticles.push({
-        x: px, y: py,
-        vx: -(Math.random() * 3 + 1.5),
-        vy: (Math.random() - 0.5) * 2,
-        alpha: 0.85 + Math.random() * 0.15,
-        size: Math.random() * 7 + 3,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        decay: Math.random() * 0.04 + 0.025
-      });
-      if (exhaustParticles.length > 240) exhaustParticles.shift();
+  // === GRID & BACKGROUND ===
+  const drawBackground = () => {
+    if (!ctx) return;
+    const w = canvas.width, h = canvas.height;
+    
+    // Solid dark background
+    ctx.fillStyle = '#141518';
+    ctx.fillRect(0, 0, w, h);
+
+    // Subtle Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+    ctx.lineWidth = 1;
+    const gridSize = 40;
+    
+    ctx.beginPath();
+    for (let x = 0; x <= w; x += gridSize) {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
     }
+    for (let y = 0; y <= h; y += gridSize) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+    }
+    ctx.stroke();
   };
 
   const triggerExplosion = (ex, ey) => {
     const colors = ['#ff3b30','#ff9500','#ffcc00','#ffffff','#ff6b00'];
-    for (let i = 0; i < 70; i++) {
+    // Powerful shockwave effect
+    ctx.save();
+    const grad = ctx.createRadialGradient(ex, ey, 0, ex, ey, 100);
+    grad.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+    grad.addColorStop(0.2, 'rgba(255, 150, 0, 0.4)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(ex, ey, 100, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    for (let i = 0; i < 90; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 9 + 2;
+      const speed = Math.random() * 12 + 4;
       crashParticles.push({
         x: ex, y: ey,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         alpha: 1,
-        size: Math.random() * 8 + 2,
+        size: Math.random() * 10 + 2,
         color: colors[Math.floor(Math.random() * colors.length)],
-        decay: Math.random() * 0.025 + 0.015
+        decay: Math.random() * 0.02 + 0.01
       });
     }
   };
@@ -172,79 +184,59 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
-    const s = 1 + (mult - 1) * 0.025;
+    
+    // Scale slightly with multiplier
+    const s = 0.85 + Math.min(0.2, (mult - 1) * 0.015);
     ctx.scale(s, s);
 
-    // Engine flame glow behind jet
-    const flameGrad = ctx.createRadialGradient(-46, 0, 0, -46, 0, 22);
-    flameGrad.addColorStop(0, 'rgba(255,210,60,0.95)');
-    flameGrad.addColorStop(0.35, 'rgba(255,110,20,0.75)');
-    flameGrad.addColorStop(1, 'rgba(255,50,0,0)');
-    ctx.beginPath();
-    ctx.ellipse(-50, 0, 28, 9, 0, 0, Math.PI * 2);
-    ctx.fillStyle = flameGrad;
-    ctx.fill();
+    const planeColor = '#e11d48';
 
-    ctx.shadowBlur = 18;
-    ctx.shadowColor = '#ff003c';
+    // Propeller spinning effect (brighter)
+    const propAngle = (Date.now() / 35) % (Math.PI * 2);
+    ctx.save();
+    ctx.translate(48, 0);
+    ctx.rotate(propAngle);
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.fillRect(-1, -20, 2, 40);
+    ctx.restore();
 
-    // Main fuselage
+    // Wings (more curved)
     ctx.beginPath();
-    ctx.moveTo(-40, -7);
-    ctx.lineTo(28, -5);
-    ctx.lineTo(46, 0);
-    ctx.lineTo(28, 5);
-    ctx.lineTo(-40, 7);
+    ctx.moveTo(10, -3);
+    ctx.lineTo(-12, -35); // top wing
+    ctx.lineTo(20, -3);
+    ctx.lineTo(20, 3);
+    ctx.lineTo(-12, 35); // bottom wing
+    ctx.lineTo(10, 3);
     ctx.closePath();
-    const bodyGrad = ctx.createLinearGradient(-40, -7, -40, 7);
-    bodyGrad.addColorStop(0, '#ff2255');
-    bodyGrad.addColorStop(0.45, '#cc0033');
-    bodyGrad.addColorStop(1, '#7a001e');
-    ctx.fillStyle = bodyGrad;
+    ctx.fillStyle = planeColor;
     ctx.fill();
 
-    ctx.shadowBlur = 0;
-
-    // Swept main wing
+    // Fuselage
     ctx.beginPath();
-    ctx.moveTo(-8, -3);
-    ctx.lineTo(-28, -30);
-    ctx.lineTo(-14, -3);
-    ctx.lineTo(-14, 3);
-    ctx.lineTo(-28, 30);
+    ctx.moveTo(-35, -5);
+    ctx.lineTo(35, -9);
+    ctx.lineTo(48, 0); // nose
+    ctx.lineTo(35, 9);
+    ctx.lineTo(-35, 5);
     ctx.closePath();
-    ctx.fillStyle = '#dd0038';
+    ctx.fillStyle = planeColor;
     ctx.fill();
 
-    // Tail fin top
+    // Add a cockpit highlight!
     ctx.beginPath();
-    ctx.moveTo(-33, -4);
-    ctx.lineTo(-44, -19);
-    ctx.lineTo(-28, -5);
+    ctx.ellipse(22, -2, 10, 4, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fill();
+
+    // Tail
+    ctx.beginPath();
+    ctx.moveTo(-25, 0);
+    ctx.lineTo(-52, -18);
+    ctx.lineTo(-52, 18);
     ctx.closePath();
-    ctx.fillStyle = '#aa0028';
+    ctx.fillStyle = planeColor;
     ctx.fill();
-
-    // Tail fin bottom
-    ctx.beginPath();
-    ctx.moveTo(-33, 4);
-    ctx.lineTo(-44, 19);
-    ctx.lineTo(-28, 5);
-    ctx.closePath();
-    ctx.fillStyle = '#aa0028';
-    ctx.fill();
-
-    // Cockpit canopy
-    ctx.beginPath();
-    ctx.ellipse(20, -2, 11, 5, 0, 0, Math.PI * 2);
-    const cockpitGrad = ctx.createRadialGradient(18, -4, 1, 20, -2, 11);
-    cockpitGrad.addColorStop(0, 'rgba(180,240,255,0.9)');
-    cockpitGrad.addColorStop(1, 'rgba(40,140,220,0.5)');
-    ctx.fillStyle = cockpitGrad;
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = '#80eeff';
-    ctx.fill();
-    ctx.shadowBlur = 0;
 
     ctx.restore();
   };
@@ -262,108 +254,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const t = Date.now() * 0.001;
     const parallax = (mult - 1) * 55;
 
-    // === SPACE BACKGROUND ===
-    const bg = ctx.createLinearGradient(0, 0, 0, h);
-    bg.addColorStop(0, '#050810');
-    bg.addColorStop(0.6, '#090c18');
-    bg.addColorStop(1, '#0c0f1e');
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, w, h);
-
-    // Nebula glow (subtle purple in bottom-left)
-    const nebula = ctx.createRadialGradient(w * 0.1, h * 0.85, 0, w * 0.1, h * 0.85, w * 0.55);
-    nebula.addColorStop(0, 'rgba(60,0,100,0.18)');
-    nebula.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = nebula;
-    ctx.fillRect(0, 0, w, h);
-
-    // === PARALLAX STARS ===
-    stars.forEach(star => {
-      const sx = ((star.x * w - parallax * 0.25 * star.size) % w + w) % w;
-      const sy = star.y * h;
-      const twinkle = 0.6 + 0.4 * Math.sin(t * star.twinkleSpeed + star.twinklePhase);
-      ctx.beginPath();
-      ctx.arc(sx, sy, star.size * (0.85 + 0.15 * twinkle), 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(210,225,255,${star.opacity * twinkle})`;
-      ctx.fill();
-    });
-
-    // === FAINT GRID ===
-    ctx.strokeStyle = 'rgba(255,255,255,0.025)';
-    ctx.lineWidth = 1;
-    const gs = 60;
-    const ox = (parallax * 0.6) % gs;
-    const oy = (parallax * 0.2) % gs;
-    ctx.beginPath();
-    for (let i = -ox; i < w; i += gs) { ctx.moveTo(i, 0); ctx.lineTo(i, h); }
-    for (let j = oy; j < h; j += gs) { ctx.moveTo(0, j); ctx.lineTo(w, j); }
-    ctx.stroke();
-
-    // === EXHAUST PARTICLES ===
-    for (let i = exhaustParticles.length - 1; i >= 0; i--) {
-      const p = exhaustParticles[i];
-      p.x += p.vx; p.y += p.vy;
-      p.alpha -= p.decay;
-      p.size *= 0.96;
-      if (p.alpha <= 0 || p.size < 0.5) { exhaustParticles.splice(i, 1); continue; }
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${hexToRgb(p.color)},${p.alpha})`;
-      ctx.fill();
-    }
-
-    // === CRASH PARTICLES ===
-    for (let i = crashParticles.length - 1; i >= 0; i--) {
-      const p = crashParticles[i];
-      p.x += p.vx; p.y += p.vy;
-      p.vy += 0.18; // gravity
-      p.alpha -= p.decay;
-      if (p.alpha <= 0) { crashParticles.splice(i, 1); continue; }
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${hexToRgb(p.color)},${p.alpha})`;
-      ctx.fill();
-    }
-
-    if (pathPoints.length < 2) {
-      drawPlane(x, y, mult, -0.15);
-      return;
-    }
+    // === BACKGROUND ===
+    drawBackground();
 
     // === PATH FILL ===
-    ctx.beginPath();
-    ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
-    for (let i = 1; i < pathPoints.length; i++) ctx.lineTo(pathPoints[i].x, pathPoints[i].y);
-    ctx.lineTo(x, h);
-    ctx.lineTo(pathPoints[0].x, h);
-    ctx.closePath();
-    const fill = ctx.createLinearGradient(0, pathPoints[0].y, 0, h);
-    fill.addColorStop(0, 'rgba(230,0,60,0.38)');
-    fill.addColorStop(0.5, 'rgba(230,0,60,0.12)');
-    fill.addColorStop(1, 'rgba(230,0,60,0.02)');
-    ctx.fillStyle = fill;
-    ctx.fill();
+    if (pathPoints.length > 0) {
+      ctx.beginPath();
+      ctx.moveTo(pathPoints[0].x, h);
+      for (let i = 0; i < pathPoints.length; i++) ctx.lineTo(pathPoints[i].x, pathPoints[i].y);
+      ctx.lineTo(x, h);
+      ctx.closePath();
+      
+      const fill = ctx.createLinearGradient(0, h * 0.5, 0, h);
+      fill.addColorStop(0, 'rgba(225, 29, 72, 0.25)');
+      fill.addColorStop(1, 'rgba(225, 29, 72, 0.05)');
+      ctx.fillStyle = fill;
+      ctx.fill();
 
-    // === PATH LINE — outer halo ===
-    ctx.beginPath();
-    ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
-    for (let i = 1; i < pathPoints.length; i++) ctx.lineTo(pathPoints[i].x, pathPoints[i].y);
-    ctx.strokeStyle = 'rgba(230,0,60,0.22)';
-    ctx.lineWidth = 14;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.stroke();
-
-    // === PATH LINE — core bright ===
-    ctx.beginPath();
-    ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
-    for (let i = 1; i < pathPoints.length; i++) ctx.lineTo(pathPoints[i].x, pathPoints[i].y);
-    ctx.strokeStyle = '#ff1a50';
-    ctx.lineWidth = 3;
-    ctx.shadowBlur = 22;
-    ctx.shadowColor = '#ff003c';
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+      // === PATH LINE ===
+      ctx.beginPath();
+      ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
+      for (let i = 1; i < pathPoints.length; i++) ctx.lineTo(pathPoints[i].x, pathPoints[i].y);
+      ctx.strokeStyle = '#e11d48';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+    }
 
     // === PLANE ANGLE (from last few points) ===
     const pLen = pathPoints.length;
@@ -405,163 +322,123 @@ document.addEventListener('DOMContentLoaded', () => {
     history.forEach((val) => {
       const pill = document.createElement('div');
       pill.className = 'pill';
-      pill.title = `${val.toFixed(2)}x`;
-      pill.style.background = getHistoryColor(val);
-      // add text to pill
       pill.textContent = `${val.toFixed(2)}x`;
-      pill.style.color = '#fff';
-      pill.style.fontSize = '0.75rem';
-      pill.style.padding = '2px 6px';
-      pill.style.borderRadius = '10px';
-      pill.style.fontWeight = 'bold';
+      pill.style.background = getHistoryColor(val);
       historyBar.appendChild(pill);
     });
   };
 
   const updatePlanePosition = mult => {
     // Position tracking for particle spawn (plane is now drawn on canvas)
-    const maxBottom = 80;
-    const bottom = Math.min(maxBottom, (mult - 1) * 20);
-    const leftOffset = Math.min(80, (mult - 1) * 15);
-    const leftPct = 10 + leftOffset;
-
-    // Spawn exhaust particles from canvas plane position
-    if (roundActive && mult > 1.05 && ctx) {
-      const px = (leftPct / 100) * canvas.width;
-      const py = canvas.height - (bottom / 100) * canvas.height;
-      spawnExhaust(px - 42, py);
-    }
+    const maxBottom = 75;
+    const bottom = Math.min(maxBottom, (mult - 1) * 25);
+    const leftOffset = Math.min(75, (mult - 1) * 18);
+    const leftPct = 12 + leftOffset;
 
     drawPath(leftPct, bottom, mult);
   };
 
 
-  const startRound = () => {
-    roundActive = true;
-    pathPoints = [];
-    exhaustParticles.length = 0;
-    crashParticles.length = 0;
-    if (ctx && canvas) {
-      const bg = ctx.createLinearGradient(0,0,0,canvas.height);
-      bg.addColorStop(0,'#050810'); bg.addColorStop(1,'#0c0f1e');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-    multiplierDisplay.textContent = '1.00x';
-    multiplierDisplay.style.color = 'var(--accent-green)';
-    flewAwayDisplay.classList.add('hidden');
+  const step = () => {
+    if (!ctx) return;
     
-    // Activate waiting panels
-    panels.forEach((p, idx) => {
-      if (p.status === 'waiting') {
-        p.status = 'active';
-      }
-      renderPanelBtn(idx);
-    });
-
-    const lambda = 0.5;
-    crashPoint = Math.max(1.01, Math.round((Math.log(1 - Math.random()) * -1 / lambda) * 100) / 100);
-    currentMult = 1.0;
-    
-    const step = () => {
-      if (!ctx) return;
+    if (roundActive) {
+      // Scale multiplier speed with time (logarithmic-ish)
+      const inc = 0.001 + (currentMult / 150); 
+      currentMult += inc;
       
-      if (roundActive) {
-        currentMult = Math.round(currentMult * 100) / 100 + 0.01;
-        multiplierDisplay.textContent = `${currentMult.toFixed(2)}x`;
-        updatePlanePosition(currentMult);
-        
-        // Auto cashouts
-        panels.forEach((p, idx) => {
-          if (p.status === 'active') {
-            renderPanelBtn(idx);
-            if (p.autoCashout && currentMult >= p.target) {
-              cashoutPanel(idx, p.target);
-            }
-          }
-        });
-        processFakeCashouts(currentMult);
+      multiplierDisplay.textContent = `${currentMult.toFixed(2)}x`;
+      if (currentMult >= 10.0) {
+        multiplierDisplay.classList.add('high-mult');
       } else {
-        // Just draw background and stars if waiting
-        const w = canvas.width, h = canvas.height;
-        const bg = ctx.createLinearGradient(0, 0, 0, h);
-        bg.addColorStop(0, '#050810'); bg.addColorStop(1, '#0c0f1e');
-        ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
-        
-        const t = Date.now() * 0.001;
-        stars.forEach(star => {
-          const sx = (star.x * w) % w;
-          const twinkle = 0.6 + 0.4 * Math.sin(t * star.twinkleSpeed + star.twinklePhase);
-          ctx.beginPath(); ctx.arc(sx, star.y*h, star.size*twinkle, 0, Math.PI*2);
-          ctx.fillStyle = `rgba(210,225,255,${star.opacity})`; ctx.fill();
-        });
+        multiplierDisplay.classList.remove('high-mult');
       }
+      updatePlanePosition(currentMult);
+      
+      // Auto cashouts
+      panels.forEach((p, idx) => {
+        if (p.status === 'active') {
+          renderPanelBtn(idx);
+          if (p.autoCashout && currentMult >= p.target) {
+            cashoutPanel(idx, p.target);
+          }
+        }
+      });
+      processFakeCashouts(currentMult);
 
-      if (roundActive && currentMult >= crashPoint) {
+      if (currentMult >= crashPoint) {
         roundActive = false;
         multiplierDisplay.style.color = 'var(--accent-red)';
         flewAwayDisplay.classList.remove('hidden');
         addHistory(crashPoint);
-        // Crash explosion
         triggerExplosion(lastPlaneX, lastPlaneY);
-        // Animate crash particles for a moment before stopping
-        let explosionFrames = 0;
-        const animateCrash = () => {
-          if (explosionFrames++ > 60 || !ctx) return;
-          if (!ctx) return;
-          const w = canvas.width, h = canvas.height;
-          const bg = ctx.createLinearGradient(0,0,0,h);
-          bg.addColorStop(0,'#050810'); bg.addColorStop(1,'#0c0f1e');
-          ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
-          stars.forEach(star => {
-            const sx = (star.x * w) % w;
-            ctx.beginPath(); ctx.arc(sx, star.y*h, star.size, 0, Math.PI*2);
-            ctx.fillStyle = `rgba(210,225,255,${star.opacity})`; ctx.fill();
-          });
-          for (let i = crashParticles.length-1; i>=0; i--) {
-            const p = crashParticles[i];
-            p.x+=p.vx; p.y+=p.vy; p.vy+=0.18; p.alpha-=p.decay;
-            if (p.alpha<=0){crashParticles.splice(i,1);continue;}
-            ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-            ctx.fillStyle=`rgba(${hexToRgb(p.color)},${p.alpha})`; ctx.fill();
-          }
-          requestAnimationFrame(animateCrash);
-        };
-        requestAnimationFrame(animateCrash);
-
-        
-        // Dim lost fake bets
-        fakeBets.forEach(bet => {
-          if (!bet.cashedOut && bet.element) {
-            bet.element.style.opacity = '0.3';
-          }
-        });
         
         // Resolve panels
+        fakeBets.forEach(bet => { if (!bet.cashedOut && bet.element) bet.element.style.opacity = '0.3'; });
         panels.forEach((p, idx) => {
-          if (p.status === 'active' || p.status === 'cashed_out') {
-            p.status = 'idle';
-          }
-          // Auto bet for next round
+          if (p.status === 'active' || p.status === 'cashed_out') p.status = 'idle';
           if (p.autoBet && p.status === 'idle') {
             const betVal = parseFloat(betInputs[idx].value) || 0;
             if (betVal > 0 && balance >= betVal) {
-              p.bet = betVal;
-              balance -= p.bet;
-              updateBalanceUI();
-              p.status = 'waiting';
+              p.bet = betVal; balance -= p.bet; updateBalanceUI(); p.status = 'waiting';
             }
           }
           renderPanelBtn(idx);
         });
         
         scheduleNextRound();
-        return;
       }
-      requestAnimationFrame(step);
-    };
+    } else {
+      // Waiting/Countdown state - draw static background or crash particles
+      drawBackground();
+      if (!flewAwayDisplay.classList.contains('hidden')) {
+        // Plane already crashed - draw particles if still alive
+        for (let i = crashParticles.length-1; i>=0; i--) {
+          const p = crashParticles[i];
+          p.x+=p.vx; p.y+=p.vy; p.vy+=0.15; p.alpha-=p.decay;
+          if (p.alpha<=0){crashParticles.splice(i,1);continue;}
+          ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+          ctx.fillStyle=`rgba(${hexToRgb(p.color)},${p.alpha})`; ctx.fill();
+        }
+      }
+    }
     requestAnimationFrame(step);
   };
+
+  const startRound = () => {
+    roundActive = true;
+    pathPoints = [];
+    exhaustParticles.length = 0;
+    crashParticles.length = 0;
+    
+    drawBackground();
+    multiplierDisplay.textContent = '1.00x';
+    multiplierDisplay.style.color = 'var(--accent-green)';
+    flewAwayDisplay.classList.add('hidden');
+    
+    // Activate waiting panels
+    panels.forEach((p, idx) => {
+      if (p.status === 'waiting') p.status = 'active';
+      renderPanelBtn(idx);
+    });
+
+    const r = Math.random();
+    if (r < 0.40) {
+      // 40% chance: Between 2.30 and 5.00
+      crashPoint = 2.30 + Math.random() * 2.70;
+    } else if (r < 0.90) {
+      // 50% chance: Between 5.00 and 10.00 (making 60% total >= 5.0)
+      crashPoint = 5.00 + Math.random() * 5.00;
+    } else {
+      // 10% chance: 10.00 and above
+      crashPoint = 10.00 + (Math.log(1 - Math.random()) * -5.0); // Exponential tail for high wins
+    }
+    crashPoint = Math.round(crashPoint * 100) / 100;
+    currentMult = 1.0;
+  };
+
+  // Start the main loop ONCE
+  requestAnimationFrame(step);
 
   const cashoutPanel = (idx, mult) => {
     const p = panels[idx];
@@ -620,23 +497,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (p.status === 'idle') {
       mainSpan.textContent = 'BET';
       subSpan.textContent = `${input.value} KES`;
-      btn.style.background = 'var(--accent-green)';
+      btn.style.background = 'var(--accent-green)'; 
+      btn.classList.remove('cashout');
       input.disabled = false;
     } else if (p.status === 'waiting') {
       mainSpan.textContent = 'CANCEL';
-      subSpan.textContent = 'Waiting for next round';
+      subSpan.textContent = 'Waiting...';
       btn.style.background = '#e6003c';
+      btn.classList.remove('cashout');
       input.disabled = true;
     } else if (p.status === 'active') {
       mainSpan.textContent = 'CASH OUT';
       const win = (p.bet * currentMult).toFixed(2);
       subSpan.textContent = `${win} KES`;
-      btn.style.background = '#ff9500';
+      btn.classList.add('cashout');
+      btn.style.background = 'var(--accent-orange)';
       input.disabled = true;
     } else if (p.status === 'cashed_out') {
-      mainSpan.textContent = 'CASHED OUT';
-      subSpan.textContent = 'Won!';
-      btn.style.background = '#28a745';
+      mainSpan.textContent = 'WON';
+      subSpan.textContent = 'Cashed Out!';
+      btn.classList.remove('cashout');
+      btn.style.background = '#28a745'; // Keep dark green for success
       input.disabled = true;
     }
   };
@@ -671,6 +552,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Real Play toggle logic
+  const realPlayToggle = document.getElementById('realPlayToggle');
+  realPlayToggle?.addEventListener('change', () => {
+    const session = JSON.parse(localStorage.getItem('jetbet_session') || 'null');
+    if (realPlayToggle.checked && !session) {
+      // Prompt for login
+      realPlayToggle.checked = false;
+      const loginBtn = document.getElementById('loginBtn');
+      if (loginBtn) {
+        loginBtn.click();
+      } else {
+        alert('Please login to use Real Play mode.');
+      }
+    } else {
+      // Toggle balance between demo and real
+      window.refreshBalance();
+    }
+  });
+
   updateBalanceUI();
   panels.forEach((_, idx) => renderPanelBtn(idx));
   scheduleNextRound(); // Start the infinite game loop
@@ -681,8 +581,31 @@ document.addEventListener('DOMContentLoaded', () => {
     updateBalanceUI();
   };
   // Called by auth.js after login / logout so balance reloads immediately
-  window.refreshBalance = () => {
+  window.refreshBalance = async () => {
+    const session = JSON.parse(localStorage.getItem('jetbet_session') || 'null');
+    const jwt = localStorage.getItem('jetbet_jwt');
+    
+    if (session && jwt) {
+      try {
+        const API_BASE = window.location.port === '5500' ? 'http://localhost:4000' : window.location.origin;
+        const resp = await fetch(`${API_BASE}/api/me/balance`, {
+          headers: { 'Authorization': `Bearer ${jwt}` }
+        });
+        const data = await resp.json();
+        if (resp.ok && typeof data.balance === 'number') {
+           balance = data.balance;
+           updateBalanceUI();
+           return;
+        }
+      } catch (e) {
+        console.warn('Failed to sync backend balance', e);
+      }
+    }
+    
     balance = getGameBalance();
     updateBalanceUI();
   };
+
+  // Initial sync
+  window.refreshBalance();
 });

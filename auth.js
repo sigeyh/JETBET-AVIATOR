@@ -12,6 +12,7 @@
   const hide = el => el && el.classList.add('hidden');
   const setError = (el, msg) => {
     if (!el) return;
+    if (typeof msg === 'object') msg = msg.error || msg.message || JSON.stringify(msg);
     el.textContent = msg;
     el.classList.toggle('hidden', !msg);
   };
@@ -25,7 +26,10 @@
   const saveUsers = users => localStorage.setItem(USERS_KEY, JSON.stringify(users));
   const getSession = () => JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
   const saveSession = user => localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-  const clearSession = () => localStorage.removeItem(SESSION_KEY);
+  const clearSession = () => {
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem('jetbet_jwt');
+  };
 
   /* ===== MODALS ===== */
   const authModal = $('authModal');
@@ -145,19 +149,41 @@
     const btn = $('registerSubmit');
     btn.classList.add('loading');
     btn.textContent = 'Creating Account…';
-    await sleep(1000);
 
-    const user = { name, phone, password, balance: 0, createdAt: Date.now() };
-    users.push(user);
-    saveUsers(users);
-    saveSession({ name, phone });
-    btn.classList.remove('loading');
-    btn.textContent = 'Create Account';
+    try {
+      const API_BASE = window.location.port === '5500' ? 'http://localhost:4000' : window.location.origin;
+      
+      const resp = await fetch(`${API_BASE}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: phone, password }) // Using phone as username for backend
+      });
 
-    closeModal(authModal);
-    renderHeader();
-    // Switch to user's real balance (starts at 0)
-    if (typeof window.refreshBalance === 'function') window.refreshBalance();
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data?.error || 'Registration failed');
+
+      console.log('[auth] Register success, received token:', !!data.token);
+
+      // Save locally (Legacy sync)
+      const user = { name, phone, password, balance: 0, createdAt: Date.now() };
+      users.push(user);
+      saveUsers(users);
+      saveSession({ name, phone });
+
+      if (data.token) {
+        localStorage.setItem('jetbet_jwt', data.token);
+      }
+
+      btn.classList.remove('loading');
+      btn.textContent = 'Create Account';
+      closeModal(authModal);
+      renderHeader();
+      if (typeof window.refreshBalance === 'function') window.refreshBalance();
+    } catch (e) {
+      btn.classList.remove('loading');
+      btn.textContent = 'Create Account';
+      return setError(errEl, e.message);
+    }
   });
 
   /* ===== LOGIN ===== */
@@ -185,34 +211,38 @@
 
     if (!user) return setError(errEl, 'Invalid credentials. Please try again.');
 
-    // backend returns JWT at /api/auth/login
-    const jwtFromServer = localStorage.getItem('jetbet_jwt');
-    if (!jwtFromServer) {
-      // fallback: attempt login again quickly only if token missing
-    }
     saveSession({ name: user.name, phone: user.phone });
 
-    // backend JWT token (best-effort: allow game login even if JWT fails)
+    // backend JWT token (used for deposits)
     try {
-      const resp = await fetch(`${window.location.origin}/api/auth/login`, {
+      const API_BASE = window.location.port === '5500' ? 'http://localhost:4000' : window.location.origin;
+
+      const resp = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: user.phone, password })
       });
-      const data = await resp.json().catch(() => ({}));
 
+      const data = await resp.json().catch(() => ({}));
+      console.log('[auth] Backend login response:', data);
       if (resp.ok && data?.token) {
         localStorage.setItem('jetbet_jwt', data.token);
+        console.log('[auth] JWT token saved.');
+      } else {
+        console.error('[auth] Login succeeded locally but backend failed:', data);
       }
-    } catch {
-      // ignore: keep UI usable for demo play
+    } catch (e) {
+      console.warn('Backend login failed, payments might be unavailable', e);
     }
 
     closeModal(authModal);
     renderHeader();
-    // Load the user's real balance
     if (typeof window.refreshBalance === 'function') window.refreshBalance();
   });
+
+
+
+
 
   /* ===== DEPOSIT ===== */
   const openDepositModal = () => {
@@ -257,17 +287,30 @@
 
     setError(errEl, '');
 
-    if (!Number.isFinite(amount) || amount < 50) return setError(errEl, 'Minimum deposit is KES 50.');
-    if (!phone || typeof phone !== 'string' || phone.length < 9) return setError(errEl, 'Enter a valid M-Pesa number.');
+    // Gate: only proceed if the M-Pesa number is filled.
+    // This prevents the flow from reaching the payments/JWT checks
+    // when the phone field is empty.
+    if (!phone || typeof phone !== 'string' || phone.length < 9) {
+      return setError(errEl, 'Enter your M-Pesa number.');
+    }
+
+    if (!Number.isFinite(amount) || amount < 50) {
+      return setError(errEl, 'Minimum deposit is KES 50.');
+    }
+
 
     const session = getSession();
     const jwt = localStorage.getItem('jetbet_jwt');
 
-    if (!session || !jwt) {
-      // Avoid blocking UX with a deposit-specific login message; prompt via auth modal UI
-      // (still requires JWT for the real PayHero call)
+    console.log('[deposit] session?', !!session, 'jwt?', !!jwt, 'origin:', window.location.origin);
+
+    if (!session) {
       return setError(errEl, 'Please login to continue.');
     }
+    if (!jwt) {
+      return setError(errEl, 'Payment token missing. Please log out and log in again.');
+    }
+
 
 
     // Send real PayHero STK Push request
@@ -288,7 +331,10 @@
     };
 
     try {
-      const resp = await fetch(`${window.location.origin}/api/deposits/stkpush`, {
+      // Determine backend URL (handle port mismatch)
+      const API_BASE = window.location.port === '5500' ? 'http://localhost:4000' : window.location.origin;
+      
+      const resp = await fetch(`${API_BASE}/api/deposits/stkpush`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -299,7 +345,7 @@
 
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok) {
-        throw new Error(data?.error || 'STK Push failed');
+        throw new Error(data?.error || data?.message || 'STK Push failed');
       }
 
       // Persist reference for optional manual polling/UX

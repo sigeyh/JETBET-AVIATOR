@@ -25,11 +25,16 @@ app.post('/api/auth/register', async (req, res) => {
     const password_hash = await hashPassword(body.password);
 
     // Insert user
-    await run(db, `INSERT INTO users (username, password_hash) VALUES (?, ?)`, [username, password_hash]);
+    const result = await run(db, `INSERT INTO users (username, password_hash) VALUES (?, ?)`, [username, password_hash]);
+    const userId = result.lastID;
+
     // Create balance row
     await run(db, `INSERT OR IGNORE INTO balances (user_id, balance) SELECT id, 0 FROM users WHERE username = ?`, [username]);
 
-    return res.json({ ok: true });
+    // Sign token immediately so frontend doesn't have to call login
+    const token = signToken({ userId, username });
+
+    return res.json({ ok: true, token });
   } catch (e) {
     if (e?.name === 'ZodError') return res.status(400).json({ error: e.message });
     return res.status(400).json({ error: e?.message || 'Register failed' });

@@ -92,18 +92,18 @@
 /* ===== MODAL BOX ===== */
 .modal-box {
   position: relative;
-  background: linear-gradient(160deg, #18191f 0%, #13141a 100%);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 18px;
-  padding: 2rem 2.2rem;
+  background: linear-gradient(160deg, #18191f 0%, #0d0f14 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 2.5rem;
   width: 100%;
   max-width: 420px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
-  animation: modalSlideUp 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-  max-height: 95vh;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05);
+  animation: modalSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 90vh;
   overflow-y: auto;
 }
-.deposit-box { max-width: 440px; }
+.deposit-box { max-width: 460px; }
 
 @keyframes modalSlideUp {
   from { transform: translateY(40px) scale(0.95); opacity: 0; }
@@ -212,25 +212,25 @@
 .phone-flag {
   display: flex;
   align-items: center;
-  background: rgba(255,255,255,0.05);
-  border: 1.5px solid rgba(255,255,255,0.1);
-  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   overflow: hidden;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.2s;
 }
 .phone-flag:focus-within {
-  border-color: rgba(48,209,88,0.6);
-  box-shadow: 0 0 0 3px rgba(48,209,88,0.12);
+  border-color: #30d158;
+  background: rgba(48, 209, 88, 0.03);
+  box-shadow: 0 0 0 4px rgba(48, 209, 88, 0.1);
 }
 .phone-flag .flag {
-  padding: 0.7rem 0.8rem;
-  background: rgba(255,255,255,0.05);
-  color: #ccc;
-  font-size: 0.88rem;
+  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
   white-space: nowrap;
-  border-right: 1px solid rgba(255,255,255,0.08);
-  -webkit-user-select: none;
-  user-select: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 .phone-flag input {
   flex: 1;
@@ -339,38 +339,43 @@
 .deposit-quick-amounts {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 1.2rem;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
 }
 .d-amt-btn {
-  padding: 0.55rem 0;
-  background: rgba(255,255,255,0.05);
-  border: 1.5px solid rgba(255,255,255,0.08);
-  border-radius: 8px;
-  color: #ccc;
-  font-size: 0.82rem;
+  padding: 0.9rem 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #9ea0a5;
+  font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.1s;
-  font-family: 'Inter', sans-serif;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .d-amt-btn:hover {
-  background: rgba(255,149,0,0.15);
-  border-color: rgba(255,149,0,0.4);
-  color: #ff9500;
-  transform: translateY(-1px);
+  background: rgba(48, 209, 88, 0.08);
+  border-color: rgba(48, 209, 88, 0.3);
+  color: #30d158;
+  transform: translateY(-2px);
 }
 .d-amt-btn.selected {
-  background: rgba(255,149,0,0.2);
-  border-color: #ff9500;
-  color: #ff9500;
+  background: #30d158;
+  border-color: #30d158;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(48, 209, 88, 0.3);
 }
 
-/* Override submit button for deposit */
 #depositSubmit {
-  background: linear-gradient(135deg, #ff9500 0%, #d97300 100%);
+  background: #30d158;
+  margin-top: 1.5rem;
+  font-weight: 800;
+  height: 52px;
 }
-#depositSubmit:hover { box-shadow: 0 6px 20px rgba(255,149,0,0.4); }
+#depositSubmit:hover { 
+  background: #34c759;
+  box-shadow: 0 8px 24px rgba(48, 209, 88, 0.35);
+}
 
 .mpesa-logo {
   display: flex;
@@ -419,8 +424,20 @@
 /* Deposit success */
 .deposit-success {
   text-align: center;
-  padding: 1rem 0;
+  padding: 2.5rem 0;
+  animation: slideUp 0.4s ease-out;
 }
-.success-icon { font-size: 3rem; margin-bottom: 0.5rem; }
-.deposit-success h3 { color: #30d158; font-size: 1.3rem; margin: 0 0 0.4rem; }
-.deposit-success p { color: #999; font-size: 0.9rem; margin: 0 0 1rem; }
+.success-icon { 
+  font-size: 4rem; 
+  margin-bottom: 1.5rem; 
+  display: block;
+  animation: scaleBounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  text-shadow: 0 10px 25px rgba(48, 209, 88, 0.4);
+}
+@keyframes scaleBounce {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+.deposit-success h3 { color: #fff; font-size: 1.625rem; font-weight: 800; margin: 0 0 0.8rem; }
+.deposit-success p { color: #9ea0a5; font-size: 1rem; line-height: 1.6; margin-bottom: 2rem; }
+#depositDone { background: #30d158; box-shadow: 0 10px 20px rgba(48, 209, 88, 0.2); }
