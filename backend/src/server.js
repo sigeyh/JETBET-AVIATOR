@@ -2,7 +2,7 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 
-const { initDb, run } = require('./db');
+const { initDb, run, get } = require('./db');
 const { registerSchema, loginSchema, hashPassword, verifyPassword, signToken, authMiddleware } = require('./auth');
 
 const { z } = require('zod');
@@ -19,17 +19,16 @@ const PORT = process.env.PORT || 4000;
 app.post('/api/auth/register', async (req, res) => {
   try {
     const body = registerSchema.parse(req.body);
-    const db = await initDb();
 
     const username = body.username;
     const password_hash = await hashPassword(body.password);
 
     // Insert user
-    const result = await run(db, `INSERT INTO users (username, password_hash) VALUES (?, ?)`, [username, password_hash]);
+    const result = await run(`INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id`, [username, password_hash]);
     const userId = result.lastID;
 
     // Create balance row
-    await run(db, `INSERT OR IGNORE INTO balances (user_id, balance) SELECT id, 0 FROM users WHERE username = ?`, [username]);
+    await run(`INSERT INTO balances (user_id, balance) VALUES ($1, 0) ON CONFLICT (user_id) DO NOTHING`, [userId]);
 
     // Sign token immediately so frontend doesn't have to call login
     const token = signToken({ userId, username });
@@ -44,14 +43,8 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const body = loginSchema.parse(req.body);
-    const db = await initDb();
 
-    const row = await new Promise((resolve, reject) => {
-      db.get(`SELECT id, username, password_hash FROM users WHERE username = ?`, [body.username], (err, r) => {
-        if (err) return reject(err);
-        resolve(r);
-      });
-    });
+    const row = await get(`SELECT id, username, password_hash FROM users WHERE username = $1`, [body.username]);
 
     if (!row) return res.status(401).json({ error: 'Invalid credentials' });
     const ok = await verifyPassword(body.password, row.password_hash);
@@ -67,14 +60,8 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/me/balance', authMiddleware, async (req, res) => {
   try {
-    const db = await initDb();
     const userId = req.user.userId;
-    const row = await new Promise((resolve, reject) => {
-      db.get(`SELECT balance FROM balances WHERE user_id = ?`, [userId], (err, r) => {
-        if (err) return reject(err);
-        resolve(r);
-      });
-    });
+    const row = await get(`SELECT balance FROM balances WHERE user_id = $1`, [userId]);
     return res.json({ balance: row?.balance ?? 0 });
   } catch (e) {
     return res.status(400).json({ error: e?.message || 'Failed' });
@@ -95,7 +82,6 @@ const stkPushSchema = z.object({
 app.post('/api/deposits/stkpush', authMiddleware, async (req, res) => {
   try {
     const body = stkPushSchema.parse(req.body);
-    const db = await initDb();
 
     const userId = req.user.userId;
     const username = req.user.username;
@@ -116,9 +102,8 @@ app.post('/api/deposits/stkpush', authMiddleware, async (req, res) => {
 
     // Persist deposit event as pending
     await run(
-      db,
       `INSERT INTO deposit_events (reference, user_id, amount, phone, payload_json, payment_success, provider_reference)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
         reference,
         userId,
@@ -183,20 +168,12 @@ app.post('/api/deposits/stkpush', authMiddleware, async (req, res) => {
 app.post('/api/deposits/payhero/callback', async (req, res) => {
   try {
     const payload = req.body;
-
     const paymentSuccess = !!payload?.paymentSuccess;
     const reference = payload?.reference;
 
     if (!reference) return res.status(400).json({ error: 'Missing reference' });
 
-    const db = await initDb();
-
-    const event = await new Promise((resolve, reject) => {
-      db.get(`SELECT * FROM deposit_events WHERE reference = ?`, [reference], (err, r) => {
-        if (err) return reject(err);
-        resolve(r);
-      });
-    });
+    const event = await get(`SELECT * FROM deposit_events WHERE reference = $1`, [reference]);
 
     if (!event) {
       return res.status(200).json({ ok: true, ignored: true });
@@ -208,23 +185,20 @@ app.post('/api/deposits/payhero/callback', async (req, res) => {
 
       // Mark event success
       await run(
-        db,
         `UPDATE deposit_events
-         SET payment_success = 1, provider_reference = ?, payload_json = ?
-         WHERE reference = ?`,
+         SET payment_success = 1, provider_reference = $1, payload_json = $2
+         WHERE reference = $3`,
         [provider_reference, JSON.stringify(payload), reference]
       );
 
       // Credit balance
       await run(
-        db,
-        `UPDATE balances SET balance = balance + ? , updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`,
+        `UPDATE balances SET balance = balance + $1 , updated_at = CURRENT_TIMESTAMP WHERE user_id = $2`,
         [amount, event.user_id]
       );
     } else {
       await run(
-        db,
-        `UPDATE deposit_events SET payment_success = 0, payload_json = ? WHERE reference = ?`,
+        `UPDATE deposit_events SET payment_success = 0, payload_json = $1 WHERE reference = $2`,
         [JSON.stringify(payload), reference]
       );
     }
