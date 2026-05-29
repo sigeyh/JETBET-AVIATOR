@@ -15,6 +15,21 @@ app.use(express.json({ limit: '1mb' }));
 
 const PORT = process.env.PORT || 4000;
 
+// Middleware to ensure DB is initialized
+let dbInitialized = false;
+app.use(async (req, res, next) => {
+  if (!dbInitialized && req.path.startsWith('/api')) {
+    try {
+      await initDb();
+      dbInitialized = true;
+    } catch (e) {
+      console.error('Lazy DB init failed:', e.message);
+      // Don't crash here, let the handler handle missing DB
+    }
+  }
+  next();
+});
+
 // ---------- Auth routes ----------
 app.post('/api/auth/register', async (req, res) => {
   try {
@@ -210,14 +225,26 @@ app.post('/api/deposits/payhero/callback', async (req, res) => {
 });
 
 // Health
-app.get('/api/health', (req, res) => res.json({ ok: true }));
-
-initDb()
-  .then(() => {
-    app.listen(PORT, () => console.log(`Backend listening on http://localhost:${PORT}`));
-  })
-  .catch((e) => {
-    console.error('DB init failed', e);
-    process.exit(1);
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    ok: true, 
+    env: {
+      hasDb: !!(process.env.DATABASE_URL || process.env.POSTGRES_URL),
+      nodeEnv: process.env.NODE_ENV
+    }
   });
+});
+
+// For local testing
+if (process.env.NODE_ENV !== 'production') {
+  initDb()
+    .then(() => {
+      app.listen(PORT, () => console.log(`Backend listening on http://localhost:${PORT}`));
+    })
+    .catch((e) => {
+      console.error('DB init failed', e);
+    });
+}
+
+module.exports = app;
 
