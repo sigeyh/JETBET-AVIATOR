@@ -305,9 +305,10 @@
     </div>
 
 <script>
-    // Configure backend base URL when frontend is served by a static server.
-    // Set this to your backend URL if it's not on the same origin/port.
-    window.JETBET_API_BASE = window.JETBET_API_BASE || 'http://localhost:4000';
+    // Configure backend base URL for production
+    // If you host the backend on a different domain (e.g. Railway), put the URL here.
+    // Example: window.JETBET_API_BASE = 'https://jetbet-backend.up.railway.app';
+    window.JETBET_API_BASE = window.JETBET_API_BASE || ''; 
 </script>
     <script src="script.js?v=2"></script>
     <script src="auth.js?v=2"></script>

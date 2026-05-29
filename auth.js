@@ -151,7 +151,7 @@
     btn.textContent = 'Creating Account…';
 
     try {
-      const API_BASE = window.location.port === '5500' ? 'http://localhost:4000' : window.location.origin;
+      const API_BASE = window.JETBET_API_BASE || (window.location.port === '5500' ? 'http://localhost:4000' : window.location.origin);
       
       const resp = await fetch(`${API_BASE}/api/auth/register`, {
         method: 'POST',
@@ -215,7 +215,7 @@
 
     // backend JWT token (used for deposits)
     try {
-      const API_BASE = window.location.port === '5500' ? 'http://localhost:4000' : window.location.origin;
+      const API_BASE = window.JETBET_API_BASE || (window.location.port === '5500' ? 'http://localhost:4000' : window.location.origin);
 
       const resp = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
@@ -332,7 +332,7 @@
 
     try {
       // Determine backend URL (handle port mismatch)
-      const API_BASE = window.location.port === '5500' ? 'http://localhost:4000' : window.location.origin;
+      const API_BASE = window.JETBET_API_BASE || (window.location.port === '5500' ? 'http://localhost:4000' : window.location.origin);
       
       const resp = await fetch(`${API_BASE}/api/deposits/stkpush`, {
         method: 'POST',

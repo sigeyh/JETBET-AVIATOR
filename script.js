@@ -587,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (session && jwt) {
       try {
-        const API_BASE = window.location.port === '5500' ? 'http://localhost:4000' : window.location.origin;
+        const API_BASE = window.JETBET_API_BASE || (window.location.port === '5500' ? 'http://localhost:4000' : window.location.origin);
         const resp = await fetch(`${API_BASE}/api/me/balance`, {
           headers: { 'Authorization': `Bearer ${jwt}` }
         });
