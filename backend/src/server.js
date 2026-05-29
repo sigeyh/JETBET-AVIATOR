@@ -112,7 +112,7 @@ app.post('/api/deposits/stkpush', authMiddleware, async (req, res) => {
 
     const customer_name = body.customerName ?? username;
 
-    const callbackBase = process.env.PUBLIC_CALLBACK_BASE || 'http://localhost:4000';
+    const callbackBase = process.env.PUBLIC_CALLBACK_BASE || 'https://jetbet-aviator-m188.vercel.app/';
     const callback_url = `${callbackBase}/api/deposits/payhero/callback`;
 
     // Persist deposit event as pending
@@ -239,7 +239,7 @@ app.get('/api/health', (req, res) => {
 if (process.env.NODE_ENV !== 'production') {
   initDb()
     .then(() => {
-      app.listen(PORT, () => console.log(`Backend listening on http://localhost:${PORT}`));
+      app.listen(PORT, () => console.log(`Backend listening on https://jetbet-aviator-m188.vercel.app/:${PORT}`));
     })
     .catch((e) => {
       console.error('DB init failed', e);
