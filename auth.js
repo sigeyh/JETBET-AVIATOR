@@ -59,7 +59,6 @@
       headerRight.innerHTML = `
         <div class="user-chip">
           <div class="chip-avatar">${initial}</div>
-          <span>${user.name || user.phone}</span>
         </div>
         <button class="header-btn btn-deposit-header" id="depositHeaderBtn">💳 Deposit</button>
         <button class="header-btn btn-logout" id="logoutBtn">Logout</button>
