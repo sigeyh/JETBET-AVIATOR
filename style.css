@@ -334,13 +334,14 @@ canvas#gameCanvas {
 }
 #progressFill { background: var(--accent-green); height: 100%; width: 0; transition: width 0.2s; }
 
-/* Bet panels */
+/* ── Controls (Bet Panels) ──────────────────────────────────── */
 .controls-area {
   display: flex;
-  gap: 1.5rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  padding-bottom: 30px;
+  gap: 0.4rem;
+  padding: 0.4rem;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .bet-panel {
@@ -400,15 +401,16 @@ canvas#gameCanvas {
 
 .mode-btn {
   flex: 1;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   background: transparent;
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
   font-weight: 700;
-  font-size: 0.85rem;
-  border-radius: 8px;
+  font-size: 0.7rem;
+  border-radius: 6px;
   text-transform: uppercase;
+  transition: 0.15s;
 }
 
 .mode-btn.active {
@@ -424,17 +426,19 @@ canvas#gameCanvas {
 }
 
 .adjust-btn {
-  width: 42px;
-  height: 42px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.06);
   color: #fff;
-  border-radius: 10px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 1.4rem;
+  font-size: 1.1rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.15s;
 }
 
 .bet-amount {
@@ -450,37 +454,43 @@ canvas#gameCanvas {
   outline: none;
 }
 
+.btn-subtext {
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
 .quick-bets {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.4rem;
-  margin-bottom: 0.8rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.2rem;
 }
 
 .quick-btn {
-  padding: 0.6rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.2rem 0;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
   color: #ccc;
-  border-radius: 10px;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.68rem;
   font-weight: 700;
+  transition: background 0.15s;
+  text-align: center;
 }
 
 .quick-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
-.action-btn {
-  margin-top: 0.8rem;
-  padding: 1.1rem;
+.action-btn, .bet-action-btn {
+  padding: 0.55rem 0.3rem;
   background: var(--accent-green);
   color: #fff;
   border: none;
-  border-radius: 12px;
-  font-size: 1.25rem;
-  font-weight: 800;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 900;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -490,7 +500,7 @@ canvas#gameCanvas {
   justify-content: center;
   line-height: 1.2;
   width: 100%;
-  box-sizing: border-box;
+  transition: filter 0.15s, transform 0.1s;
 }
 
 .action-btn:hover {
@@ -542,11 +552,43 @@ input:checked + .slider:before { transform: translateX(26px); }
 
   .controls-area { 
     flex-direction: column; 
-    align-items: center; 
-    gap: 0.8rem;
-    padding: 0.5rem;
   }
   .bet-panel { width: 100%; max-width: 400px; padding: 0.8rem; }
+}
+
+@media (min-width: 769px) {
+  .controls-area {
+    gap: 1rem;
+    padding: 0.8rem 1rem;
+  }
+  .bet-panel { padding: 0.8rem; }
+  .action-btn, .bet-action-btn { font-size: 1.1rem; padding: 0.8rem 0.5rem; }
+  .adjust-btn { width: 38px; height: 38px; font-size: 1.2rem; }
+  .bet-amount { height: 38px; font-size: 1.1rem; }
+  .quick-btn { font-size: 0.78rem; padding: 0.3rem 0; }
+}
+
+@media (max-width: 480px) {
+  .app-header { padding: 0.35rem 0.6rem; height: 42px; }
+  .logo { font-size: 1rem; }
+  .header-btn { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+  
+  .aviator-header { padding: 0.25rem 0.5rem; }
+  #balance { font-size: 0.85rem; }
+
+  /* Keep panels side-by-side, very compact */
+  .controls-area { padding: 0.3rem; gap: 0.3rem; }
+  .bet-panel { padding: 0.3rem; gap: 0.25rem; border-radius: 8px; }
+  .panel-header { margin-bottom: 0; }
+  
+  .adjust-btn { width: 28px; height: 28px; font-size: 1rem; border-radius: 5px; }
+  .bet-amount { height: 28px; font-size: 0.85rem; border-radius: 5px; }
+  .action-btn, .bet-action-btn { padding: 0.45rem 0.2rem; font-size: 0.8rem; border-radius: 7px; }
+  .btn-subtext { font-size: 0.62rem; }
+  .quick-btn { font-size: 0.62rem; padding: 0.18rem 0; border-radius: 4px; }
+  .mode-btn { font-size: 0.65rem; padding: 0.2rem 0; }
+  .auto-row { font-size: 0.68rem; }
+  .small-input { width: 40px; font-size: 0.7rem; }
 }
 
 /* Very small phones */
@@ -575,4 +617,3 @@ input:checked + .slider:before { transform: translateX(26px); }
     font-size: 1.2rem;
   }
 }
-
