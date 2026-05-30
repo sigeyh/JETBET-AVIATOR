@@ -583,6 +583,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // --- New Handlers for UI Buttons ---
+  // 1. Plus / Minus buttons
+  document.querySelectorAll('.adjust-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const panelIdx = parseInt(btn.dataset.panel) - 1;
+      const input = betInputs[panelIdx];
+      let val = parseFloat(input.value) || 0;
+      if (btn.classList.contains('plus-btn')) val += 10;
+      else val = Math.max(10, val - 10);
+      input.value = val.toFixed(2);
+      renderPanelBtn(panelIdx);
+    });
+  });
+
+  // 2. Quick Bet buttons (100, 200, 500, 10,000)
+  document.querySelectorAll('.quick-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const panelIdx = parseInt(btn.dataset.panel) - 1;
+      const input = betInputs[panelIdx];
+      input.value = parseFloat(btn.dataset.val).toFixed(2);
+      renderPanelBtn(panelIdx);
+    });
+  });
+
+  // 3. Mode buttons (Bet vs Auto)
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const panelIdx = parseInt(btn.dataset.panel) - 1;
+      const mode = btn.dataset.mode;
+      const container = btn.closest('.bet-panel');
+      
+      // Update buttons UI
+      container.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Show/Hide auto settings
+      const autoSettings = container.querySelector('.auto-settings');
+      if (mode === 'auto') autoSettings?.classList.remove('hidden');
+      else autoSettings?.classList.add('hidden');
+    });
+  });
+
   updateBalanceUI();
   panels.forEach((_, idx) => renderPanelBtn(idx));
   scheduleNextRound(); // Start the infinite game loop
