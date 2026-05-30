@@ -1,4 +1,4 @@
-/* Aviator Original Design System */
+﻿/* Aviator Original Design System */
 :root {
   --bg-primary: #141518;
   --bg-secondary: #000000;
@@ -334,7 +334,7 @@ canvas#gameCanvas {
 }
 #progressFill { background: var(--accent-green); height: 100%; width: 0; transition: width 0.2s; }
 
-/* ── Controls (Bet Panels) ──────────────────────────────────── */
+/* â”€â”€ Controls (Bet Panels) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .controls-area {
   display: flex;
   gap: 0.4rem;
@@ -525,7 +525,7 @@ input:checked + .slider:before { transform: translateX(26px); }
 /* Modal (hidden for now) */
 .modal-overlay { display: none; }
 
-/* Plane is now drawn on canvas — hide the CSS div */
+/* Plane is now drawn on canvas â€” hide the CSS div */
 .plane {
   display: none;
 }
@@ -544,7 +544,7 @@ input:checked + .slider:before { transform: translateX(26px); }
     padding: 0.6rem 0.6rem;
   }
   .game-view {
-    min-height: 52vh;
+    min-height: 40vh;
   }
   #multiplierDisplay {
     font-size: 2.2rem;
@@ -594,7 +594,7 @@ input:checked + .slider:before { transform: translateX(26px); }
 /* Very small phones */
 @media (max-width: 420px) {
   .game-view {
-    min-height: 48vh;
+    min-height: 35vh;
   }
   #waitingNextRound {
     font-size: 1.05rem;
