@@ -691,7 +691,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const depBtn = document.getElementById('depositHeaderBtn') || document.getElementById('registerBtn'); // Fallback to register if not logged in
         depBtn?.click();
       } else if (id === 'navWithdraw') {
-        alert('Withdrawal system coming soon!');
+        if (typeof window.openWithdrawModal === 'function') {
+          window.openWithdrawModal();
+        } else {
+          alert('Withdrawal system coming soon!');
+        }
       } else if (id === 'navProfile') {
         alert('Profile management coming soon!');
       }

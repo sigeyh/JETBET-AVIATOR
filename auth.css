@@ -441,3 +441,33 @@
 .deposit-success h3 { color: #fff; font-size: 1.625rem; font-weight: 800; margin: 0 0 0.8rem; }
 .deposit-success p { color: #9ea0a5; font-size: 1rem; line-height: 1.6; margin-bottom: 2rem; }
 #depositDone { background: #30d158; box-shadow: 0 10px 20px rgba(48, 209, 88, 0.2); }
+
+/* Withdrawal specific */
+.input-hint {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 4px;
+}
+
+#withdrawSubmit {
+  background: linear-gradient(135deg, #0a84ff 0%, #005ac0 100%);
+  margin-top: 1.5rem;
+  font-weight: 800;
+  height: 52px;
+}
+
+#withdrawSubmit:hover {
+  background: linear-gradient(135deg, #2ea0ff 0%, #0a84ff 100%);
+  box-shadow: 0 8px 24px rgba(10, 132, 255, 0.35);
+}
+
+#withdrawSuccessMsg {
+  color: #ccc;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+#withdrawDone {
+  background: #30d158;
+}
+

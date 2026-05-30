@@ -338,6 +338,52 @@
         </div>
     </div>
 
+    <!-- ========== WITHDRAWAL MODAL ========== -->
+    <div class="modal-overlay" id="withdrawModal">
+        <div class="modal-box deposit-box">
+            <button class="modal-close" id="closeWithdrawModal">&#10005;</button>
+            <div class="modal-logo">🏦 <span>Withdraw Funds</span></div>
+            <p class="modal-subtitle">Transfer winnings to your M-Pesa</p>
+
+            <div class="form-group">
+                <label for="withdrawAmount">Amount to Withdraw (KES)</label>
+                <input type="number" id="withdrawAmount" placeholder="Min. KES 200" min="200" step="10">
+                <p class="input-hint">Minimum withdrawal: KES 200</p>
+            </div>
+
+            <div class="form-group">
+                <label for="withdrawPhone">M-Pesa Phone Number</label>
+                <div class="phone-flag">
+                    <span class="flag">🇰🇪 +254</span>
+                    <input type="tel" id="withdrawPhone" placeholder="712 345 678" inputmode="tel" autocomplete="tel" >
+                </div>
+            </div>
+
+            <div class="mpesa-logo">
+                <span>Withdrawal to</span>
+                <strong style="color:#4caf50;">M-PESA</strong>
+            </div>
+
+            <div class="form-error hidden" id="withdrawError"></div>
+
+            <button class="submit-btn" id="withdrawSubmit">Withdraw to M-Pesa</button>
+
+            <!-- Success state -->
+            <div class="deposit-success hidden" id="withdrawSuccess">
+                <div class="success-icon">✅</div>
+                <h3>Withdrawal Successful!</h3>
+                <p id="withdrawSuccessMsg"></p>
+                <button class="submit-btn" id="withdrawDone">Done</button>
+            </div>
+            
+            <!-- Loading state -->
+            <div class="stk-pending hidden" id="withdrawPending">
+                <div class="stk-spinner"></div>
+                <p>Processing your withdrawal request...<br>Please wait a moment.</p>
+            </div>
+        </div>
+    </div>
+
 <script>
     // Configure backend base URL for production
     // When using Vercel for both, leave this as empty string for same-origin calls.

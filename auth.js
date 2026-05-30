@@ -417,6 +417,105 @@
     resetDepositUI();
   });
 
+  /* ===== WITHDRAWAL ===== */
+  const withdrawModal = $('withdrawModal');
+
+  const openWithdrawModal = () => {
+    // Pre-fill phone from session
+    const user = getSession();
+    if (user?.phone) {
+      const wdPhone = $('withdrawPhone');
+      if (wdPhone) wdPhone.value = user.phone;
+    }
+    resetWithdrawUI();
+    openModal(withdrawModal);
+  };
+
+  const resetWithdrawUI = () => {
+    hide($('withdrawPending'));
+    hide($('withdrawSuccess'));
+    show($('withdrawSubmit'));
+    const form = withdrawModal?.querySelectorAll('.form-group');
+    form?.forEach(fg => show(fg));
+    show(withdrawModal?.querySelector('.mpesa-logo'));
+    setError($('withdrawError'), '');
+    if ($('withdrawAmount')) $('withdrawAmount').value = '';
+  };
+
+  $('withdrawSubmit')?.addEventListener('click', async () => {
+    const amount = parseFloat($('withdrawAmount')?.value);
+    const phone = $('withdrawPhone')?.value.trim().replace(/\s+/g, '');
+    const errEl = $('withdrawError');
+
+    setError(errEl, '');
+
+    if (!phone || phone.length < 9) {
+      return setError(errEl, 'Enter your M-Pesa number.');
+    }
+
+    if (!Number.isFinite(amount) || amount < 200) {
+      return setError(errEl, 'Minimum withdrawal is KES 200.');
+    }
+
+    const session = getSession();
+    if (!session) {
+      return setError(errEl, 'Please login to continue.');
+    }
+
+    // Check user balance
+    const users = getUsers();
+    const userIdx = users.findIndex(u => u.phone === session.phone);
+    const currentBalance = userIdx > -1 ? (users[userIdx].balance || 0) : 0;
+
+    if (amount > currentBalance) {
+      return setError(errEl, `Insufficient balance. Your balance is KES ${currentBalance.toLocaleString()}.`);
+    }
+
+    const btn = $('withdrawSubmit');
+    btn.classList.add('loading');
+    btn.textContent = 'Processing...';
+
+    // Simulate backend processing
+    hide($('withdrawSubmit'));
+    const form = withdrawModal?.querySelectorAll('.form-group');
+    form?.forEach(fg => hide(fg));
+    hide(withdrawModal?.querySelector('.mpesa-logo'));
+    show($('withdrawPending'));
+
+    await sleep(2500);
+
+    // Update balance
+    if (userIdx > -1) {
+      users[userIdx].balance -= amount;
+      saveUsers(users);
+    }
+    
+    // Update game balance via global variable
+    if (typeof window.addToBalance === 'function') {
+      window.addToBalance(-amount);
+    }
+
+    hide($('withdrawPending'));
+    const successMsg = $('withdrawSuccessMsg');
+    if (successMsg) successMsg.textContent = `KES ${amount.toLocaleString()} has been sent to ${phone}. Transaction successful!`;
+    show($('withdrawSuccess'));
+  });
+
+  $('withdrawDone')?.addEventListener('click', () => {
+    closeModal(withdrawModal);
+    resetWithdrawUI();
+  });
+
+  $('closeWithdrawModal')?.addEventListener('click', () => closeModal(withdrawModal));
+
+  // Add event listener to modal overlay for closing
+  withdrawModal?.addEventListener('click', e => {
+    if (e.target === withdrawModal) closeModal(withdrawModal);
+  });
+
+  // Expose openWithdrawModal to window so script.js can call it
+  window.openWithdrawModal = openWithdrawModal;
+
   /* ===== INIT ===== */
   renderHeader();
 
