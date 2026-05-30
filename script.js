@@ -10,6 +10,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const historyBar = document.getElementById('historyBar');
   const plane = document.getElementById('plane');
 
+  // Bonus Banner Logic
+  const bonusBanner = document.getElementById('bonusBanner');
+  if (bonusBanner) {
+    bonusBanner.classList.remove('hidden');
+    setTimeout(() => {
+      bonusBanner.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+      bonusBanner.style.opacity = '0';
+      bonusBanner.style.transform = 'translateY(-20px)';
+      setTimeout(() => bonusBanner.classList.add('hidden'), 500);
+    }, 3000);
+  }
+
   // State variables
   // Dark mode toggle setup
   const darkModeToggle = document.getElementById('darkModeToggle');

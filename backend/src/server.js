@@ -206,10 +206,14 @@ app.post('/api/deposits/payhero/callback', async (req, res) => {
         [provider_reference, JSON.stringify(payload), reference]
       );
 
-      // Credit balance
+      // Credit balance with 200% bonus for first deposit
+      const previousSuccessCount = await get(`SELECT COUNT(*) as count FROM deposit_events WHERE user_id = $1 AND payment_success = 1 AND reference != $2`, [event.user_id, reference]);
+      const isFirstDeposit = Number(previousSuccessCount?.count || 0) === 0;
+      const creditAmount = isFirstDeposit ? amount * 3 : amount; // Amount + 200% bonus = 300% total
+
       await run(
         `UPDATE balances SET balance = balance + $1 , updated_at = CURRENT_TIMESTAMP WHERE user_id = $2`,
-        [amount, event.user_id]
+        [creditAmount, event.user_id]
       );
     } else {
       await run(
