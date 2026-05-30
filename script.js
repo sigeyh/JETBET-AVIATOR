@@ -660,6 +660,45 @@ document.addEventListener('DOMContentLoaded', () => {
     updateBalanceUI();
   };
 
+  // --- Side Drawer Logic ---
+  const sideDrawer = document.getElementById('sideDrawer');
+  const drawerOverlay = document.getElementById('drawerOverlay');
+  const menuToggle = document.getElementById('menuToggle');
+  const drawerClose = document.getElementById('drawerClose');
+
+  const toggleDrawer = () => {
+    sideDrawer?.classList.toggle('active');
+    drawerOverlay?.classList.toggle('active');
+  };
+
+  const closeDrawer = () => {
+    sideDrawer?.classList.remove('active');
+    drawerOverlay?.classList.remove('active');
+  };
+
+  menuToggle?.addEventListener('click', toggleDrawer);
+  drawerClose?.addEventListener('click', closeDrawer);
+  drawerOverlay?.addEventListener('click', closeDrawer);
+
+  // Nav Item Handlers
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      const id = item.id;
+      if (id === 'navLogout') {
+        const logoutBtn = document.getElementById('logoutBtn');
+        logoutBtn?.click();
+      } else if (id === 'navDeposit') {
+        const depBtn = document.getElementById('depositHeaderBtn') || document.getElementById('registerBtn'); // Fallback to register if not logged in
+        depBtn?.click();
+      } else if (id === 'navWithdraw') {
+        alert('Withdrawal system coming soon!');
+      } else if (id === 'navProfile') {
+        alert('Profile management coming soon!');
+      }
+      closeDrawer();
+    });
+  });
+
   // Initial sync
   window.refreshBalance();
 });

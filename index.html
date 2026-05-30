@@ -36,7 +36,31 @@
                 <button class="header-btn btn-login" id="loginBtn">Login</button>
                 <button class="header-btn btn-register" id="registerBtn">Register</button>
             </div>
+            <!-- Hamburger Menu Icon -->
+            <button class="menu-toggle" id="menuToggle">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </button>
         </header>
+
+        <!-- Slide-out Side Drawer -->
+        <div class="side-drawer" id="sideDrawer">
+            <div class="drawer-header">
+                <div class="logo">🚀 JETBET</div>
+                <button class="drawer-close" id="drawerClose">&times;</button>
+            </div>
+            <nav class="drawer-nav">
+                <a href="#" class="nav-item" id="navProfile">👤 Profile</a>
+                <a href="#" class="nav-item" id="navWithdraw">🏦 Withdrawal</a>
+                <a href="#" class="nav-item" id="navHistory">📜 Bet History</a>
+                <a href="#" class="nav-item" id="navSettings">⚙️ Settings</a>
+                <hr class="nav-divider">
+                <a href="#" class="nav-item" id="navDeposit">💳 Deposit</a>
+                <a href="#" class="nav-item logout-item" id="navLogout">🚪 Logout</a>
+            </nav>
+        </div>
+        <div class="drawer-overlay" id="drawerOverlay"></div>
 
         <div class="content-layout">
             <aside class="left-sidebar">
